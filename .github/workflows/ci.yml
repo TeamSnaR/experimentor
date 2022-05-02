@@ -35,7 +35,7 @@ jobs:
         npx nx affected --target=test --parallel=3 --ci --code-coverage
         npx nx affected --target=build --parallel=3
       final-commands: |
-        cp dist ${{make_directory.outputs.dist}}
+        cp dist ${{needs.make_directory.outputs.dist}}
 
   agents:
     name: Nx Cloud - Agents
@@ -50,5 +50,5 @@ jobs:
     steps:
       - name: List
         run: |
-          echo "Listing... ${{make_directory.outputs.dist}}"
-          ls -a ${{make_directory.outputs.dist}}
+          echo "Listing... ${{needs.make_directory.outputs.dist}}"
+          ls -a ${{needs.make_directory.outputs.dist}}

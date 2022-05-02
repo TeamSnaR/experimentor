@@ -37,4 +37,4 @@ jobs:
       - name: List
         run: |
           echo "Listing... ${{ github.workspace }}"
-          ls -la ${{ github.workspace }}
+          ls ${{ github.workspace }}

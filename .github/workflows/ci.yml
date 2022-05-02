@@ -18,8 +18,9 @@ jobs:
     steps:
       - name: Make directory
         run: |
-          mkdir -p dist
+          mkdir -p ${{github.workspace}}/dist
           echo '::set-output name=dist::${{github.workspace}}/dist'
+          ls -a ${{github.workspace}}/dist
   main:
     name: Nx Cloud - Main Job
     needs: [make_directory]

@@ -32,7 +32,9 @@ jobs:
   deploy:
     name: Nx Cloud - Deploy
     runs-on: ubuntu-20.04
+    needs: main
     steps:
       - name: List
         run: |
           echo "Listing... ${{ github.workspace }}"
+          ls -la ${{ github.workspace }}

@@ -6,16 +6,27 @@ on:
       - main
   pull_request:
 
+env:
+  artifact: ${{ github.workspace }}/artifact
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  make_directory:
+    runs-on: ubuntu-latest
+    outputs:
+      dist: ${{steps.make_directory.outputs.dist}}
+    steps:
+      - name: Make directory
+        run: |
+          mkdir -p dist
+          echo '::set-output name=dist::${{github.workspace}}/dist'
   main:
     name: Nx Cloud - Main Job
+    needs: [make_directory]
     uses: nrwl/ci/.github/workflows/nx-cloud-main.yml@v0.3
     with:
-      working-directory: ${{ github.workspace }}
       parallel-commands: |
         npx nx workspace-lint
         npx nx format:check
@@ -24,7 +35,7 @@ jobs:
         npx nx affected --target=test --parallel=3 --ci --code-coverage
         npx nx affected --target=build --parallel=3
       final-commands: |
-        ls -a ${{ github.workspace }}
+        cp dist ${{make_directory.outputs.dist}}
 
   agents:
     name: Nx Cloud - Agents
@@ -35,9 +46,9 @@ jobs:
   deploy:
     name: Nx Cloud - Deploy
     runs-on: ubuntu-20.04
-    needs: main
+    needs: [main, make_directory]
     steps:
       - name: List
         run: |
-          echo "Listing... ${{ github.workspace }}"
-          ls -a ${{ github.workspace }}
+          echo "Listing... ${{make_directory.outputs.dist}}"
+          ls -a ${{make_directory.outputs.dist}}

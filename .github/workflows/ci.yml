@@ -6,8 +6,6 @@ on:
       - main
   pull_request:
 
-env:
-  artifact: ${{ github.workspace }}/artifact
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
   cancel-in-progress: true
@@ -27,6 +25,8 @@ jobs:
     needs: [make_directory]
     uses: nrwl/ci/.github/workflows/nx-cloud-main.yml@v0.3
     with:
+      init-commands: |
+        ls -a ${{needs.make_directory.outputs.dist}}
       parallel-commands: |
         npx nx workspace-lint
         npx nx format:check
@@ -35,7 +35,8 @@ jobs:
         npx nx affected --target=test --parallel=3 --ci --code-coverage
         npx nx affected --target=build --parallel=3
       final-commands: |
-        cp dist ${{needs.make_directory.outputs.dist}}
+        ls -a ${{needs.make_directory.outputs.dist}}
+        cp -r -f dist ${{needs.make_directory.outputs.dist}}
 
   agents:
     name: Nx Cloud - Agents

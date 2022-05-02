@@ -28,3 +28,11 @@ jobs:
     uses: nrwl/ci/.github/workflows/nx-cloud-agents.yml@v0.3
     with:
       number-of-agents: 3
+
+  deploy:
+    name: Nx Cloud - Deploy
+    runs-on: ubuntu-20.04
+    steps:
+      - name: List
+        run: |
+          echo "Listing... ${{ github.workspace }}"

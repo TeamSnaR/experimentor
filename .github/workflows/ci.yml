@@ -5,6 +5,44 @@ on:
     branches:
       - main
   pull_request:
+  workflow_call:
+    inputs:
+      init-commands:
+        required: false
+        type: string
+      final-commands:
+        required: false
+        type: string
+      parallel-commands:
+        required: false
+        type: string
+      parallel-commands-on-agents:
+        required: false
+        type: string
+      node-version:
+        required: false
+        type: string
+      yarn-version:
+        required: false
+        type: string
+      npm-version:
+        required: false
+        type: string
+      pnpm-version:
+        required: false
+        type: string
+      install-command:
+        required: false
+        type: string
+      main-branch-name:
+        required: false
+        type: string
+        default: main
+      # We needed this input in order to be able to configure out integration tests for this repo, it is not documented
+      # so as to not cause confusion/add noise, but technically any consumer of the workflow can use it if they want to.
+      working-directory:
+        required: false
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number || github.ref }}

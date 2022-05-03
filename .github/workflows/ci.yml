@@ -44,6 +44,7 @@ jobs:
       - run: npx nx affected --target=build --parallel --max-parallel=3
       - run: npx nx affected --target=test --parallel --max-parallel=2
       - run: npx nx-cloud stop-all-agents
+
   pr:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' }}
@@ -55,6 +56,10 @@ jobs:
           fetch-depth: 0
       - name: Derive appropriate SHAs for base and head for `nx affected` commands
         uses: nrwl/nx-set-shas@v2
+      - name: Detect package manager
+        id: package_manager
+        run: |
+          echo "::set-output name=name::$([[ -f ./yarn.lock ]] && echo "yarn" || ([[ -f ./pnpm-lock.yaml ]] && echo "pnpm") || echo "npm")"
       # Set node/npm/yarn versions using volta, with optional overrides provided by the consumer
       - uses: volta-cli/action@fdf4cf319494429a105efaa71d0e5ec67f338c6e
         # with:
@@ -98,7 +103,7 @@ jobs:
             echo "Running npm ci"
             npm ci
           fi
-      - run: npx nx-cloud start-ci-run
+      - run: yarn nx-cloud start-ci-run
       - run: |
           yarn nx-cloud record -- yarn nx workspace-lint
           yarn nx-cloud record -- yarn nx format:check
@@ -106,7 +111,7 @@ jobs:
           yarn nx affected --target=lint --parallel=3
           yarn nx affected --target=test --parallel=3 --ci --code-coverage
           yarn nx affected --target=build --parallel=3
-      - run: npx nx-cloud stop-all-agents
+      - run: yarn nx-cloud stop-all-agents
   agents:
     name: Nx Cloud - Agents
     uses: nrwl/ci/.github/workflows/nx-cloud-agents.yml@v0.2

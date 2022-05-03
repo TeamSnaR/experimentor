@@ -24,28 +24,58 @@ jobs:
         id: package_manager
         run: |
           echo "::set-output name=name::$([[ -f ./yarn.lock ]] && echo "yarn" || ([[ -f ./pnpm-lock.yaml ]] && echo "pnpm") || echo "npm")"
-      - uses: actions/setup-node@v1
-        with:
-          node-version: '14'
+      # Set node/npm/yarn versions using volta, with optional overrides provided by the consumer
+      - uses: volta-cli/action@fdf4cf319494429a105efaa71d0e5ec67f338c6e
+        # with:
+        #   node-version: "${{ inputs.node-version }}"
+        #   npm-version: "${{ inputs.npm-version }}"
+        #   yarn-version: "${{ inputs.yarn-version }}"
+      - name: Print node/npm/yarn versions
+        id: versions
+        run: |
+          node_ver=$( node --version )
+          yarn_ver=$( yarn --version || true )
+          pnpm_ver=$( pnpm --version || true )
+          echo "Node: ${node_ver:1}"
+          echo "NPM: $( npm --version )"
+          if [[ $yarn_ver != '' ]]; then echo "Yarn: $yarn_ver"; fi
+          if [[ $pnpm_ver != '' ]]; then echo "PNPM: $pnpm_ver"; fi
+          echo "::set-output name=node_version::${node_ver:1}"
       - name: Get yarn cache directory path
-        if: steps.package_manager.outputs.name == 'yarn'
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
       - name: Use the node_modules cache if available [yarn]
-        if: steps.package_manager.outputs.name == 'yarn'
         uses: actions/cache@v2
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: ${{ runner.os }}-node-${{ steps.versions.outputs.node_version }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-node-${{ steps.versions.outputs.node_version }}-yarn-
-      - run: npm install
-      - run: npx nx-cloud start-ci-run
-      - run: npx nx affected --target=build --parallel --max-parallel=3
-      - run: npx nx affected --target=test --parallel --max-parallel=2
-      - run: npx nx-cloud stop-all-agents
-
+      - name: Install dependencies
+        run: |
+          if [ -n "${{ inputs.install-command }}" ]; then
+            echo "Running custom install-command: ${{ inputs.install-command }}"
+            ${{ inputs.install-command }}
+          elif [ "${{ steps.package_manager.outputs.name == 'yarn' }}" == "true" ]; then
+            echo "Running yarn install --frozen-lockfile"
+            yarn install --frozen-lockfile
+          elif [ "${{ steps.package_manager.outputs.name == 'pnpm' }}" == "true" ]; then
+            echo "Running pnpm install --frozen-lockfile"
+            pnpm install --frozen-lockfile
+          else
+            echo "Running npm ci"
+            npm ci
+          fi
+      - run: yarn nx-cloud start-ci-run
+      - run: |
+          yarn nx-cloud record -- yarn nx workspace-lint
+          yarn nx-cloud record -- yarn nx format:check
+      - run: |
+          yarn nx affected --target=lint --parallel=3
+          yarn nx affected --target=test --parallel=3 --ci --code-coverage
+          yarn nx affected --target=build --parallel=3
+      - run: yarn nx-cloud stop-all-agents
   pr:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' }}

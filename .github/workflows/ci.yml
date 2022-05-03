@@ -155,3 +155,17 @@ jobs:
           source: ${{env.ARTIFACTS_NAME}}
           target: ${{secrets.DESTINATION_TMP_DIR}}
           rm: true
+      - name: Deploy app bits
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          # ssh host
+          host: ${{secrets.DESTINATION_HOST}}
+          # ssh port
+          port: ${{secrets.DESTINATION_PORT}}
+          # ssh username
+          username: ${{secrets.DEPLOYER_USER}}
+          # ssh password
+          password: ${{secrets.DEPLOYER_PW}}
+          script_stop: true
+          script: |
+            ${{secrets.DEPLOY_APPS_SCRIPT}}

@@ -152,6 +152,6 @@ jobs:
           username: ${{secrets.DEPLOYER_USER}}
           # ssh password
           password: ${{secrets.DEPLOYER_PW}}
-          source: ${{env.ARTIFACTS_NAME}}/*
+          source: ${{env.ARTIFACTS_NAME}}/**,${{env.ARTIFACTS_NAME}}/**/*
           target: ${{secrets.DESTINATION_TMP_DIR}}
           rm: true

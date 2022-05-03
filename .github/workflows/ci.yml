@@ -147,7 +147,7 @@ jobs:
           # ssh host
           host: ${{secrets.DESTINATION_HOST}}
           # ssh port
-          port: ${{secrets.DESTINATION_PORRT}}
+          port: ${{secrets.DESTINATION_PORT}}
           # ssh username
           username: ${{secrets.DEPLOYER_USER}}
           # ssh password

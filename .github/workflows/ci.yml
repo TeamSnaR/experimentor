@@ -7,6 +7,7 @@ on:
 
 env:
   NX_CLOUD_DISTRIBUTED_EXECUTION: true
+  ARTIFACTS_NAME: apps-artifacts
 
 jobs:
   main:
@@ -115,7 +116,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: apps
+          name: ${{env.ARTIFACTS_NAME}}
           path: dist/apps
           if-no-files-found: error
           retention-days: 1
@@ -131,12 +132,26 @@ jobs:
     name: Deploy
     defaults:
       run:
-        working-directory: apps-artifacts
+        working-directory: ${{env.ARTIFACTS_NAME}}
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
-          name: apps
-          path: apps-artifacts
+          name: ${{env.ARTIFACTS_NAME}}
+          path: ${{env.ARTIFACTS_NAME}}
       - name: Display structure of downloaded files
         run: ls -R
+      - name: Upload to staging
+        uses: appleboy/scp-action@master
+        with:
+          # ssh host
+          host: ${{secrets.DESTINATION_HOST}}
+          # ssh port
+          port: ${{secrets.DESTINATION_PORRT}}
+          # ssh username
+          username: ${{secrets.DEPLOYER_USER}}
+          # ssh password
+          password: ${{secrets.DEPLOYER_PW}}
+          source: ${{env.ARTIFACTS_NAME}}/*
+          target: ${{secrets.DESTINATION_TMP_DIR}}
+          rm: true

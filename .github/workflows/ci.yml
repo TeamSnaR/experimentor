@@ -112,6 +112,13 @@ jobs:
           yarn nx affected --target=test --parallel=3 --ci --code-coverage
           yarn nx affected --target=build --parallel=3
       - run: yarn nx-cloud stop-all-agents
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: apps
+          path: dist/apps
+          if-no-files-found: error
+          retention-days: 1
   agents:
     name: Nx Cloud - Agents
     uses: nrwl/ci/.github/workflows/nx-cloud-agents.yml@v0.2
